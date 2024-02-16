@@ -10,6 +10,15 @@ npm install
 npm run serve
 ```
 
+BE
+
+pull inv-sys-be
+bundle install
+rails db:create
+rails db migrate
+
+rails s to run the be
+
 ### Compiles and minifies for production
 ```
 npm run build
