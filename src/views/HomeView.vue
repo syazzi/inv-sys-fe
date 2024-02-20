@@ -36,7 +36,6 @@ export default {
     .get('http://localhost:3000/api/v1/stocks')
     .then(res => {
       this.items = res.data.data
-      console.log(this.items);
       })
     .catch(res => console.log(res))
   },

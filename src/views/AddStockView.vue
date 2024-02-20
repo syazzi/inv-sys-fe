@@ -163,6 +163,8 @@ export default {
       itemDialog: false,
       departmentDialog: false,
       vendorDialog: false,
+      description: "",
+      image_url: "",
 
       items: [],
       departments: [],
@@ -201,22 +203,23 @@ export default {
         .catch((res) => console.log(res));
     },
     handleSubmit() {
-      try {
-        const stock = {
-          item: this.item,
-          category: this.category[0],
-          department: this.department,
-          purchase_date: this.purchaseDate,
-          arrival_date: this.arrivalDate,
-          vendor: this.vendor,
-          quantity: this.quantity,
-          price: this.price,
-        };
-        console.log(stock);
-        return stock;
-      } catch (err) {
-        console.log(err);
-      }
+      const item_id = parseInt(this.items.filter(item => item.attributes.name == this.item).map(item => item.id))
+      const department_id = parseInt(this.departments.filter(item => item.attributes.name == this.department).map(item => item.id))
+      const vendor_id = parseInt(this.vendors.filter(item => item.attributes.name == this.vendor).map(item => item.id))
+
+      console.log(item_id, department_id, vendor_id);
+      axios
+      .post("http://localhost:3000/api/v1/stocks", {
+        item_id: item_id,
+        department_id: department_id,
+        purchase_date: this.purchaseDate,
+        arrival_date: this.arrivalDate,
+        vendor_id: vendor_id,
+        quantity: this.quantity,
+        price_per_unit: this.price,
+        image_url: this.image_url,
+        description: this.description
+      }).then(res => console.log("Success")).catch(res => console.log(res))
     },
     itemChange() {
       if (this.item == "Add Item") {
@@ -272,7 +275,7 @@ export default {
           console.error("Error:", error);
         });
       this.departmentDialog = false;
-      this.department = '';
+      this.department = "";
     },
     handleVendorSubmit(values) {
       axios
