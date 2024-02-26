@@ -1,16 +1,31 @@
 <template>
   <div class="dashboard container">
-    <h1 class="black--text text-center">Dashboard</h1>
+    <div id="homeView">
+      <h1 class="black--text text-center">Dashboard</h1>
 
-    <v-container class="my-5">
-      <HomepageTable @addTable="addTable" :items="items" :stocks="filteredStocks" :subHeaders="subHeaders" :headers="headers" :expandedRow="expandedRow"/>
+      <v-container class="my-5">
+        <HomepageTable
+          @addTable="addTable"
+          :items="items"
+          :stocks="filteredStocks"
+          :subHeaders="subHeaders"
+          :headers="headers"
+          :expandedRow="expandedRow"
+          @edit="edit"
+        />
+      </v-container>
+    </div>
+    <v-container class="d-flex justify-end">
+      <v-btn top depressed @click="exportToPdf">Export to pdf</v-btn>
     </v-container>
   </div>
 </template>
 
 <script>
-import axios from "axios"
+import axios from "axios";
 import HomepageTable from "../components/TableComp.vue";
+import html2pdf from "html2pdf.js";
+
 export default {
   name: "Home",
   components: { HomepageTable },
@@ -33,29 +48,58 @@ export default {
       stocks: [],
       filteredStocks: [],
       items: [],
-      expandedRow: null
+      expandedRow: null,
+      dialog: false,
     };
   },
   methods: {
-    addTable(item, index){
+    async getStocks() {
+      axios
+        .get("http://localhost:3000/api/v1/stocks")
+        .then((res) => {
+          this.stocks = res.data.data;
+        })
+        .catch((res) => console.log(res));
+    },
+    async getItems() {
+      axios
+        .get("http://localhost:3000/api/v1/items")
+        .then((res) => {
+          this.items = res.data;
+        })
+        .catch((res) => console.log(res));
+    },
+    addTable(item, index) {
       this.expandedRow = this.expandedRow === index ? null : index;
-      this.filteredStocks = this.stocks.filter(data => data.attributes.item_id == item.id)
+      this.filteredStocks = this.stocks.filter(
+        (data) => data.attributes.item_id == item.id
+      );
+    },
+    async edit(values) {
+      axios
+        .patch(`http://localhost:3000/api/v1/stocks/${values.id}`, {
+          arrival_date: values.arrival_date,
+          location: values.location,
+          description: values.description,
+          image_url: values.image_url,
+        })
+        .then((res) => {
+          this.getStocks();
+          this.getItems();
+          window.location.reload();
+        })
+        .catch((res) => console.log(res));
+    },
+    exportToPdf(){
+       html2pdf(document.getElementById("homeView"), {
+        margin: 1,
+        filename: "stock_table.pdf",
+      });
     }
+
   },
   mounted() {
-    axios
-    .get('http://localhost:3000/api/v1/stocks')
-    .then(res => {
-      this.stocks = res.data.data
-      })
-    .catch(res => console.log(res))
-
-    axios
-    .get('http://localhost:3000/api/v1/items')
-    .then(res => {
-      this.items = res.data
-      })
-    .catch(res => console.log(res))
+    this.getStocks(), this.getItems();
   },
 };
 </script>
