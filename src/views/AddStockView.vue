@@ -15,7 +15,7 @@
           />
         </v-flex>
         <v-flex xs12 md6 class="pa-1">
-          <v-select v-model="category" :label="category" readonly></v-select>
+          <v-select :label="category" readonly></v-select>
         </v-flex>
         <v-flex xs12 md6 class="pa-1">
           <v-select
@@ -82,10 +82,11 @@
         <v-flex xs12 md6 class="pa-1">
           <v-select
             v-model="vendor"
-            :items="vendors.map(item => item.attributes)"
+            :items="vendors.map((item) => item.attributes)"
             item-text="name"
             item-value="id"
             label="Vendor"
+            @change="vendorChange"
             required
           ></v-select>
         </v-flex>
@@ -107,6 +108,9 @@
         </v-flex>
         <v-flex xs12 md6 class="pa-1">
           <v-file-input chips label="Insert Image"></v-file-input>
+          <div class="pt-3">
+            <v-text-field label="Location" v-model="location"></v-text-field>
+          </div>
         </v-flex>
         <v-flex xs12 md6 class="pa-1">
           <v-textarea solo name="input-7-4" label="Descriptions"></v-textarea>
@@ -123,13 +127,24 @@
         </v-flex>
       </v-layout>
     </v-form>
-    <DialogComp :dialog="itemDialog" :name="item" @changeDialog="close" />
+    <DialogComp
+      :dialog="itemDialog"
+      :name="item"
+      @changeDialog="close"
+      @modalSubmit="handleItemSubmit"
+    />
     <DialogComp
       :dialog="departmentDialog"
       :name="department"
       @changeDialog="close"
+      @modalSubmit="handleDepartmentSubmit"
     />
-    <DialogComp :dialog="vendorDialog" :name="vendor" @changeDialog="close" />
+    <DialogComp
+      :dialog="vendorDialog"
+      :name="vendor"
+      @changeDialog="close"
+      @modalSubmit="handleVendorSubmit"
+    />
   </v-container>
 </template>
 
@@ -146,13 +161,14 @@ export default {
       purchaseDate: null,
       arrivalDate: null,
       vendor: null,
-      quantity: null,
+      quantity: 1,
       price: null,
-
       itemDialog: false,
       departmentDialog: false,
       vendorDialog: false,
-
+      description: "",
+      image_url: "",
+      location: "",
       items: [],
       departments: [],
       vendors: [],
@@ -161,23 +177,66 @@ export default {
     };
   },
   methods: {
+    getItems() {
+      axios
+        .get("http://localhost:3000/api/v1/items")
+        .then((res) => {
+          this.items = res.data.data;
+          this.items.push({ attributes: { name: "Add Item" } });
+        })
+        .catch((res) => console.log(res));
+    },
+    getDepartments() {
+      axios
+        .get("http://localhost:3000/api/v1/departments")
+        .then((res) => {
+          this.departments = res.data.data;
+          this.departments.push({ attributes: { name: "Add Department" } });
+        })
+        .catch((res) => console.log(res));
+    },
+
+    getVendors() {
+      axios
+        .get("http://localhost:3000/api/v1/vendors")
+        .then((res) => {
+          this.vendors = res.data.data;
+          this.vendors.push({ attributes: { name: "Add Vendor" } });
+        })
+        .catch((res) => console.log(res));
+    },
     handleSubmit() {
-      try {
-        const stock = {
-          item: this.item,
-          category: this.category,
-          department: this.department,
+      const item_id = parseInt(
+        this.items
+          .filter((item) => item.attributes.name == this.item)
+          .map((item) => item.id)
+      );
+      const department_id = parseInt(
+        this.departments
+          .filter((item) => item.attributes.name == this.department)
+          .map((item) => item.id)
+      );
+      const vendor_id = parseInt(
+        this.vendors
+          .filter((item) => item.attributes.name == this.vendor)
+          .map((item) => item.id)
+      );
+
+      console.log(item_id, department_id, vendor_id);
+      axios
+        .post("http://localhost:3000/api/v1/stocks", {
+          item_id: item_id,
+          department_id: department_id,
           purchase_date: this.purchaseDate,
           arrival_date: this.arrivalDate,
-          vendor: this.vendor,
+          vendor_id: vendor_id,
           quantity: this.quantity,
-          price: this.price,
-        };
-        console.log(stock);
-        return stock;
-      } catch (err) {
-        console.log(err);
-      }
+          price_per_unit: this.price,
+          image_url: this.image_url,
+          description: this.description,
+        })
+        .then((res) => console.log("Success"))
+        .catch((res) => console.log(res));
     },
     itemChange() {
       if (this.item == "Add Item") {
@@ -203,36 +262,56 @@ export default {
       }
     },
     vendorChange() {
-      if (this.item == "Add Vendors") {
+      if (this.vendor == "Add Vendor") {
         this.vendorDialog = true;
       }
     },
+    handleItemSubmit(values) {
+      axios
+        .post("http://localhost:3000/api/v1/items", {
+          name: values.name,
+          category: values.category,
+        })
+        .then((response) => {
+          this.getItems();
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+      this.itemDialog = false;
+    },
+    handleDepartmentSubmit(values) {
+      axios
+        .post("http://localhost:3000/api/v1/departments", {
+          name: values.name,
+        })
+        .then((response) => {
+          this.getDepartments();
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+      this.departmentDialog = false;
+      this.department = "";
+    },
+    handleVendorSubmit(values) {
+      axios
+        .post("http://localhost:3000/api/v1/vendors", {
+          name: values.name,
+        })
+        .then((response) => {
+          this.getVendors();
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+      this.vendorDialog = false;
+    },
   },
   mounted() {
-    axios
-      .get("http://localhost:3000/api/v1/items")
-      .then((res) => {
-        this.items = res.data.data;
-        this.items.push({ attributes: { name: "Add Item" } });
-
-      })
-      .catch((res) => console.log(res));
-
-    axios
-      .get("http://localhost:3000/api/v1/departments")
-      .then((res) => {
-        this.departments = res.data.data;
-        this.departments.push({ attributes: { name: "Add Department" } });
-      })
-      .catch((res) => console.log(res));
-
-    axios
-      .get("http://localhost:3000/api/v1/vendors")
-      .then((res) => {
-        this.vendors = res.data.data;
-        this.vendors.push({ attributes: { name: "Add Vendors" } });
-      })
-      .catch((res) => console.log(res));
+    this.getItems();
+    this.getDepartments();
+    this.getVendors();
   },
 };
 </script>

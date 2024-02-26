@@ -4,21 +4,21 @@
       <v-card>
         <v-card-title>
           <span class="text-h5">{{ name }}</span>
+          <v-btn icon class="ml-auto" @click="closeDialog">
+            <v-icon>mdi-close-circle-outline</v-icon>
+          </v-btn>
         </v-card-title>
         <v-card-text>
           <div v-if="name == 'Add Item'">
-            <ItemDialog />
+            <ItemDialog @modalSubmit="handleModalSubmit"/>
           </div>
           <div v-else-if="name == 'Add Department'">
-            <DepartmentDialog/>
+            <DepartmentDialog :subName="department" @modalSubmit="handleModalSubmit"/>
           </div>
-          <small>*indicates required field</small>
+          <div v-else-if="name == 'Add Vendor'">
+            <DepartmentDialog :subName="vendor" @modalSubmit="handleModalSubmit"/>
+          </div>
         </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" text @click="save"> Close </v-btn>
-          <v-btn color="blue darken-1" text @click="save"> Save </v-btn>
-        </v-card-actions>
       </v-card>
     </v-dialog>
   </v-row>
@@ -29,10 +29,19 @@ import ItemDialog from "./ItemDialog.vue";
 export default {
   components: { ItemDialog, DepartmentDialog },
   props: ["dialog", "name"],
+  data() {
+    return {
+      department: 'Department',
+      vendor: 'Vendor'
+    }
+  },
   methods: {
-    save() {
+    closeDialog() {
       this.$emit("changeDialog");
     },
+    handleModalSubmit(values){
+      this.$emit("modalSubmit", values)
+    }
   },
 };
 </script>
