@@ -31,7 +31,7 @@ export default {
         { title: "Received Date", key: "arrival_date" },
         { title: "Status", key: "status" },
         { title: "Location", key: "location" },
-        { title: "Editted By", key: "editted_by" },
+        { title: "Editted By", key: "username" },
         { title: "Remarks", key: "description" },
       ],
       items: [],

@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <NavBar />
+    <NavBar :isloggedIn="isloggedIn"/>
 
     <div class="grey lighten-4">
       <v-main>
@@ -16,7 +16,18 @@ export default {
   name: "App",
   components: { NavBar },
   data: () => ({
-    //
+    isloggedIn: false
   }),
+  methods: {
+    
+  },
+  created() {
+    const authData = $cookies.get('userData')
+    if(authData){
+      this.isloggedIn = true 
+    }
+      console.log(this.isloggedIn);
+    // return this.isloggedIn = false
+  },
 };
 </script>

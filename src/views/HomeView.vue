@@ -25,7 +25,7 @@
 import axios from "axios";
 import HomepageTable from "../components/TableComp.vue";
 import html2pdf from "html2pdf.js";
-
+import apiService from "../service/api.service";
 export default {
   name: "Home",
   components: { HomepageTable },
@@ -50,6 +50,7 @@ export default {
       items: [],
       expandedRow: null,
       dialog: false,
+      username: "",
     };
   },
   methods: {
@@ -76,12 +77,13 @@ export default {
       );
     },
     async edit(values) {
-      axios
-        .patch(`http://localhost:3000/api/v1/stocks/${values.id}`, {
+      await apiService
+        .patch("/api/v1/stocks/" + values.id, {
           arrival_date: values.arrival_date,
           location: values.location,
           description: values.description,
           image_url: values.image_url,
+          username: this.username,
         })
         .then((res) => {
           this.getStocks();
@@ -90,16 +92,20 @@ export default {
         })
         .catch((res) => console.log(res));
     },
-    exportToPdf(){
-       html2pdf(document.getElementById("homeView"), {
+    exportToPdf() {
+      html2pdf(document.getElementById("homeView"), {
         margin: 1,
         filename: "stock_table.pdf",
       });
-    }
-
+    },
   },
   mounted() {
-    this.getStocks(), this.getItems();
+    const user = $cookies.get("userData");
+    if (user) {
+      this.username = user.first_name;
+      this.getStocks();
+    }
+    this.getItems();
   },
 };
 </script>

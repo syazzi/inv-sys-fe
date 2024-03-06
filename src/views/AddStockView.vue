@@ -151,6 +151,7 @@
 <script>
 import axios from "axios";
 import DialogComp from "../components/DialogComp.vue";
+import apiService from '../service/api.service';
 export default {
   components: { DialogComp },
   data() {
@@ -169,6 +170,7 @@ export default {
       description: "",
       image_url: "",
       location: "",
+      username: "",
       items: [],
       departments: [],
       vendors: [],
@@ -205,7 +207,8 @@ export default {
         })
         .catch((res) => console.log(res));
     },
-    handleSubmit() {
+    async handleSubmit() {
+      const headersData = localStorage.getItem('authHeaders')
       const item_id = parseInt(
         this.items
           .filter((item) => item.attributes.name == this.item)
@@ -222,9 +225,8 @@ export default {
           .map((item) => item.id)
       );
 
-      console.log(item_id, department_id, vendor_id);
-      axios
-        .post("http://localhost:3000/api/v1/stocks", {
+      await apiService
+        .create("/api/v1/stocks", {
           item_id: item_id,
           department_id: department_id,
           purchase_date: this.purchaseDate,
@@ -234,8 +236,10 @@ export default {
           price_per_unit: this.price,
           image_url: this.image_url,
           description: this.description,
-          location: this.location
-        })
+          location: this.location,
+          username: this.username
+        }
+        )
         .then((res) => console.log("Success"))
         .catch((res) => console.log(res));
     },
@@ -310,6 +314,8 @@ export default {
     },
   },
   mounted() {
+    const user = $cookies.get('userData')
+    this.username = user.first_name
     this.getItems();
     this.getDepartments();
     this.getVendors();
