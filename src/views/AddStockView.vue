@@ -1,5 +1,5 @@
 <template>
-  <v-container class="AddStock">
+  <v-container class="AddStock" id="addStock">
     <h1 class="text-center">Add Stock</h1>
     <v-form @submit.prevent="handleSubmit" id="add-stock-form">
       <v-layout row wrap>
@@ -234,6 +234,7 @@ export default {
           price_per_unit: this.price,
           image_url: this.image_url,
           description: this.description,
+          location: this.location
         })
         .then((res) => console.log("Success"))
         .catch((res) => console.log(res));

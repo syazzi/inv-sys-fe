@@ -1,17 +1,26 @@
 <template>
-  <div class="historyView container">
-    <h1 class="text-center black--text">History</h1>
-
-    <v-container class="my-5">
-      <HistoryTable :items="items" :headers="headers" :expandedRow="expandedRow"/>
+  <v-row align="center">
+    <v-container id="historyTable">
+      <h1 class="text-center black--text">History</h1>
+      <v-container class="">
+        <HistoryTable
+          :items="items"
+          :headers="headers"
+          :expandedRow="expandedRow"
+        />
+      </v-container>
     </v-container>
-  </div>
+    <v-container class="d-flex justify-end">
+      <v-btn top depressed @click="exportToPdf">Export to pdf</v-btn>
+    </v-container>
+  </v-row>
 </template>
 <script>
-import axios from 'axios';
-import HistoryTable from '../components/TableComp.vue'
+import html2pdf from "html2pdf.js";
+import axios from "axios";
+import HistoryTable from "../components/TableComp.vue";
 export default {
-  components: {HistoryTable},
+  components: { HistoryTable },
   data() {
     return {
       headers: [
@@ -25,19 +34,25 @@ export default {
         { title: "Editted By", key: "editted_by" },
         { title: "Remarks", key: "description" },
       ],
-      items: [
-        
-      ],
-      expandedRow: null
+      items: [],
+      expandedRow: null,
     };
+  },
+  methods: {
+    exportToPdf() {
+      html2pdf(document.getElementById("historyTable"), {
+        margin: 1,
+        filename: "historyTabel.pdf",
+      });
+    },
   },
   mounted() {
     axios
-    .get('http://localhost:3000/api/v1/stocks')
-    .then(res => {
-      this.items = res.data
+      .get("http://localhost:3000/api/v1/stocks")
+      .then((res) => {
+        this.items = res.data;
       })
-    .catch(res => console.log(res))
+      .catch((res) => console.log(res));
   },
 };
 </script>
